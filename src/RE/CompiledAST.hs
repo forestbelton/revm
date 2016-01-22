@@ -18,9 +18,12 @@ data CompiledAST a next
 $(makeFree ''CompiledAST)
 
 type FCompiledAST a = Free (CompiledAST a) ()
+
+-- A table that associates labels to the positions they reference
 newtype JumpTable a = JumpTable { getJumpTable :: M.Map a (FCompiledAST a) }
     deriving (Show)
 
+-- Build a jump table from a compiled AST
 buildJumpTable :: Ord a => FCompiledAST a -> JumpTable a
 buildJumpTable = JumpTable . buildJumpTable' M.empty
 
