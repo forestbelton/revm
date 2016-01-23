@@ -16,7 +16,8 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   exposed-modules:     Lib
-                     , RE.CompiledAST
+                     , RE.Program
+                     , RE.Insn
                      , RE.AST
                      , RE.Parse
                      , RE.Compile

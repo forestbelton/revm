@@ -1,13 +1,14 @@
 module RE.Match where
 
 import RE.Compile
-import RE.CompiledAST
+import RE.Program
 import RE.Interpret
 import RE.Parse
 
-newtype RegExp = RegExp String
+newtype RegExp = RegExp { extractRegExp :: String }
+
+compileRE :: RegExp -> Program Int
+compileRE = buildProgram . compile . parse . extractRegExp
 
 match :: RegExp -> String -> Bool
-match (RegExp re) s = interpret s compiled jt 
-    where compiled = compile $ parse re
-          jt = buildJumpTable compiled
+match re s = interpret s (compileRE re)

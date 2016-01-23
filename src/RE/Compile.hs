@@ -5,7 +5,7 @@ import Control.Monad.Free
 import Control.Monad.State
 
 import RE.AST
-import RE.CompiledAST
+import RE.Insn
 
 nextLabel :: Monad m => StateT Int m Int
 nextLabel = do
@@ -17,12 +17,12 @@ nextLabels :: Monad m => Int -> StateT Int m [Int]
 nextLabels 0 = return []
 nextLabels n = (:) <$> nextLabel <*> nextLabels (n - 1)
 
-compile :: AST -> Free (CompiledAST Int) ()
+compile :: AST -> InsnList Int
 compile ast = do
     evalStateT (compile' ast) 0
     match
 
-compile' :: MonadFree (CompiledAST Int) m => AST -> StateT Int m ()
+compile' :: MonadFree (InsnF Int) m => AST -> StateT Int m ()
 compile' (Literal c) = character c
 compile' (Binary Sequence e1 e2) = do
     compile' e1
