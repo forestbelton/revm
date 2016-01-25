@@ -19,7 +19,8 @@ nextLabels n = (:) <$> nextLabel <*> nextLabels (n - 1)
 
 compile :: AST -> InsnList Int
 compile ast = do
-    evalStateT (compile' ast) 0
+    label 0
+    evalStateT (compile' ast) 1
     match
 
 compile' :: MonadFree (InsnF Int) m => AST -> StateT Int m ()

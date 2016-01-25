@@ -23,6 +23,8 @@ library
                      , RE.Compile
                      , RE.Interpret
                      , RE.Match
+                     , RE.Gen
+                     , RE.Gen.C
   build-depends:       base >= 4.7 && < 5
                      , free >= 4.12.1 && < 4.13
                      , trifecta >= 1.5.2 && < 1.6
