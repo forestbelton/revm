@@ -22,6 +22,6 @@ generateInsns prgm = case extractInsn prgm of
 generateInsn :: InsnF Int () -> String
 generateInsn (Label idx _)       = printf "        case %d:\n" idx
 generateInsn (Character c _)     = printf "            if (*s++ != '%c') {\n                return 0;\n            }\n" c
-generateInsn (Jump idx _)        = printf "            return match(s, %d);\n" idx
-generateInsn (Split idx1 idx2 _) = printf "            return match(s, %d) || match(s, %d);\n" idx1 idx2
+generateInsn (Jump idx _)        = printf "            return match0(s, %d);\n" idx
+generateInsn (Split idx1 idx2 _) = printf "            return match0(s, %d) || match0(s, %d);\n" idx1 idx2
 generateInsn Match               = printf "            return 1;\n"
