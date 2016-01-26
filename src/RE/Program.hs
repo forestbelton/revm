@@ -1,45 +1,42 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes, FlexibleContexts, DeriveFunctor, DeriveGeneric #-}
-module RE.Program (Program(..), buildProgram, doJump, extractInsn) where
+{-# LANGUAGE TemplateHaskell, QuasiQuotes, FlexibleContexts, DeriveFunctor #-}
+module RE.Program (Program(..), buildProgram, compactTable, extendedTable) where
 
 import Control.Monad.Free
 import Data.Maybe
 import Data.Aeson
+import Data.Aeson.TH
 import qualified Data.Map as M
-import GHC.Generics
 
 import RE.Insn
 
 data Program a = Program {
-      insns     :: InsnList a
-    , jumpTable :: M.Map a (InsnList a)
- } deriving (Show, Generic)
+      insns     :: [InsnF String ()]
+    , jumpTable :: M.Map String a
+ } deriving (Show, Eq)
 
-instance ToJSON a => ToJSON (Program a) where
-    toEncoding = genericToEncoding defaultOptions
+$(deriveJSON defaultOptions ''Program)
 
-buildProgram :: Ord a => InsnList a -> Program a
-buildProgram insns = Program insns $ buildJumpTable insns
+type TableBuilder a = [InsnF String ()] -> M.Map String a
 
-buildJumpTable :: Ord a => InsnList a -> M.Map a (InsnList a)
-buildJumpTable = buildJumpTable' M.empty
-    where buildJumpTable' m (Pure _) = m
-          buildJumpTable' m (Free x) = case x of
-              Label a next -> buildJumpTable' (M.insert a next m) next
-              Character _ next -> buildJumpTable' m next
-              Jump _ next      -> buildJumpTable' m next
-              Split _ _ next   -> buildJumpTable' m next
-              Match            -> m
+buildProgram :: TableBuilder a -> [InsnF String ()] -> Program a
+buildProgram tableBuilder insns = Program insns $ tableBuilder insns
 
--- Given a label, computes a new program with the label jumped to
-doJump :: Ord a => Program a -> a -> Program a
-doJump (Program _ tab) idx = Program (fromJust $ M.lookup idx tab) tab
+compactTable :: TableBuilder Int
+compactTable = compactTable' 0 M.empty
+    where compactTable' _ m []       = m
+          compactTable' n m (x:next) = case x of
+              Label a _     -> compactTable' (n + 1) (M.insert a n m) next
+              Character _ _ -> compactTable' (n + 1) m next
+              Jump _ _      -> compactTable' (n + 1) m next
+              Split _ _ _   -> compactTable' (n + 1) m next
+              Match         -> m
 
--- Given a program, try to extract 1 instruction 
-extractInsn :: Program a -> Maybe (InsnF a (), Program a)
-extractInsn (Program (Pure _) _)   = Nothing
-extractInsn (Program (Free x) tab) = Just $ case x of
-    Label a next         -> (Label a (), Program next tab)
-    Character c next     -> (Character c (), Program next tab)
-    Jump idx next        -> (Jump idx (), Program next tab)
-    Split idx1 idx2 next -> (Split idx1 idx2 (), Program next tab)
-    Match                -> (Match, Program (Pure ()) tab)
+extendedTable :: TableBuilder [InsnF String ()]
+extendedTable = extendedTable' M.empty
+    where extendedTable' m []    = m
+          extendedTable' m (h:t) = case h of
+            Label a _     -> extendedTable' (M.insert a t m) t
+            Character _ _ -> extendedTable' m t
+            Jump _ _      -> extendedTable' m t
+            Split _ _ _   -> extendedTable' m t
+            Match         -> m

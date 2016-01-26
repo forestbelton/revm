@@ -1,10 +1,10 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes, FlexibleContexts, DeriveFunctor, DeriveGeneric, FlexibleInstances, DeriveFoldable #-}
+{-# LANGUAGE TemplateHaskell, QuasiQuotes, FlexibleContexts, DeriveFunctor, FlexibleInstances, DeriveFoldable #-}
 module RE.Insn where
 
 import Control.Monad.Free
 import Control.Monad.Free.TH
 import Data.Aeson
-import GHC.Generics
+import Data.Aeson.TH
 
 listify :: (Functor f, Foldable f) => Free f a -> [f ()]
 listify (Pure _) = []
@@ -18,15 +18,7 @@ data InsnF a next
     | Jump a next
     | Split a a next
     | Match
-    deriving (Functor, Generic, Show, Foldable)
+    deriving (Functor, Show, Foldable, Eq)
 
-instance (ToJSON a, ToJSON next) => ToJSON (InsnF a next) where
-    toEncoding = genericToEncoding defaultOptions
-
+$(deriveJSON defaultOptions ''InsnF)
 $(makeFree ''InsnF)
-
-type InsnList a = Free (InsnF a) ()
-
-instance (Functor f, Foldable f, ToJSON (f ())) => ToJSON (Free f a) where
-    toJSON = toJSON . listify
-

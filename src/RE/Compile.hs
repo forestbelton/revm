@@ -17,8 +17,8 @@ nextLabels :: Monad m => Int -> StateT Int m [String]
 nextLabels 0 = return []
 nextLabels n = (:) <$> nextLabel <*> nextLabels (n - 1)
 
-compile :: AST -> InsnList String
-compile ast = do
+compile :: AST -> [InsnF String ()]
+compile ast = listify $ do
     label "0"
     evalStateT (compile' ast) 1
     match
