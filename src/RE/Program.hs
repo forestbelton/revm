@@ -1,16 +1,21 @@
-{-# LANGUAGE TemplateHaskell, QuasiQuotes, FlexibleContexts, DeriveFunctor #-}
-module RE.Program (Program, buildProgram, doJump, extractInsn) where
+{-# LANGUAGE TemplateHaskell, QuasiQuotes, FlexibleContexts, DeriveFunctor, DeriveGeneric #-}
+module RE.Program (Program(..), buildProgram, doJump, extractInsn) where
 
-import Data.Maybe
 import Control.Monad.Free
+import Data.Maybe
+import Data.Aeson
 import qualified Data.Map as M
+import GHC.Generics
 
 import RE.Insn
 
 data Program a = Program {
       insns     :: InsnList a
     , jumpTable :: M.Map a (InsnList a)
- }
+ } deriving (Show, Generic)
+
+instance ToJSON a => ToJSON (Program a) where
+    toEncoding = genericToEncoding defaultOptions
 
 buildProgram :: Ord a => InsnList a -> Program a
 buildProgram insns = Program insns $ buildJumpTable insns

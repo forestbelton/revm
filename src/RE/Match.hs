@@ -7,7 +7,7 @@ import RE.Parse
 
 newtype RegExp = RegExp { extractRegExp :: String }
 
-compileRE :: RegExp -> Program Int
+compileRE :: RegExp -> Program String
 compileRE = buildProgram . compile . parse . extractRegExp
 
 match :: RegExp -> String -> Bool

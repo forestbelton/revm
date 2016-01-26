@@ -1,5 +1,5 @@
 {-# LANGUAGE FlexibleContexts #-}
-module RE.Compile where
+module RE.Compile (compile) where
 
 import Control.Monad.Free
 import Control.Monad.State
@@ -7,23 +7,23 @@ import Control.Monad.State
 import RE.AST
 import RE.Insn
 
-nextLabel :: Monad m => StateT Int m Int
+nextLabel :: Monad m => StateT Int m String
 nextLabel = do
     next <- get
     modify (+ 1)
-    return next
+    return $ show next
 
-nextLabels :: Monad m => Int -> StateT Int m [Int]
+nextLabels :: Monad m => Int -> StateT Int m [String]
 nextLabels 0 = return []
 nextLabels n = (:) <$> nextLabel <*> nextLabels (n - 1)
 
-compile :: AST -> InsnList Int
+compile :: AST -> InsnList String
 compile ast = do
-    label 0
+    label "0"
     evalStateT (compile' ast) 1
     match
 
-compile' :: MonadFree (InsnF Int) m => AST -> StateT Int m ()
+compile' :: MonadFree (InsnF String) m => AST -> StateT Int m ()
 compile' (Literal c) = character c
 compile' (Binary Sequence e1 e2) = do
     compile' e1
