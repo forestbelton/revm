@@ -1,0 +1,39 @@
+#!/usr/bin/env node
+
+var util = require('util');
+
+function buildFunction(ast) {
+    return ''
+        + 'function match(s) {\n'
+        + '    function match0(s, state) {\n'
+        + '        switch(state) {\n'
+        + ast.insns.map(function(insn) {
+            return {
+                'Label':     util.format('            case %s:', insn.contents[0]),
+                'Character': util.format('                if (s[0] != "%s") {\n                    return false;\n                }', insn.contents[0]),
+                'Jump':      util.format('                return match0(s, %s);', insn.contents[0]),
+                'Split':     util.format('                return match0(s, %s) || match0(s, %s);', insn.contents[0], insn.contents[1]),
+                'Match':     util.format('                return true;')
+            }[insn.tag];
+        }).join('\n') + '\n'
+        + '        }\n'
+        + '    }\n'
+        + '    return match0(s, 0);\n'
+        + '}';
+}
+
+var stdin = process.stdin;
+
+stdin.resume();
+stdin.setEncoding('utf8');
+
+var chunks = [];
+
+stdin.on('data', function(chunk) {
+    chunks.push(chunk);
+});
+
+stdin.on('end', function() {
+    var ast = JSON.parse(chunks.join(''));
+    console.log(buildFunction(ast));
+});

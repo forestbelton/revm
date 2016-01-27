@@ -21,7 +21,7 @@ produceAST flags = do
 pipeBinary :: String -> B.ByteString -> IO a
 pipeBinary name ast = do
     dir <- fromMaybe "./langs" <$> lookupEnv "REVM_ROOT"
-    (stdin, stdout, stderr, procHandle) <- createProcess $ (proc (dir ++ "/lang-" ++ name) []) { std_in = CreatePipe }
+    (stdin, stdout, stderr, procHandle) <- createProcess $ (shell $ dir ++ "/lang-" ++ name) { std_in = CreatePipe }
     B.hPutStrLn (fromJust stdin) ast
 
     exitCode <- waitForProcess procHandle
