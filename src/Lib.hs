@@ -1,6 +1,11 @@
-module Lib
-    ( someFunc
-    ) where
+module Lib (compileToJSON) where
 
-someFunc :: IO ()
-someFunc = putStrLn "someFunc"
+import Data.Aeson
+import qualified Data.ByteString.Lazy.Char8 as B
+
+import RE.Compile
+import RE.Parse
+import RE.Program
+
+compileToJSON :: String -> B.ByteString
+compileToJSON = encode . buildProgram compactTable . compile . parse
