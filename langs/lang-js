@@ -10,7 +10,7 @@ function buildFunction(ast) {
         + ast.insns.map(function(insn) {
             return {
                 'Label':     util.format('            case %s:', insn.contents[0]),
-                'Character': util.format('                if (s[0] != "%s") {\n                    return false;\n                }', insn.contents[0]),
+                'Character': util.format('                if (s[0] != "%s") {\n                    return false;\n                }\n                s = s.slice(1);', insn.contents[0]),
                 'Jump':      util.format('                return match0(s, %s);', insn.contents[0]),
                 'Split':     util.format('                return match0(s, %s) || match0(s, %s);', insn.contents[0], insn.contents[1]),
                 'Match':     util.format('                return true;')
